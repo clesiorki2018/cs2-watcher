@@ -10,6 +10,7 @@ from pynput import mouse
 # ===========================================================
 
 HOTKEY_MAIN_MODE = "f8"
+HOTKEY_SIDE_MODE = "f7"
 HOTKEY_EXIT = "esc"
 
 
@@ -59,9 +60,12 @@ class AccessibilityWatcher:
     F8:
         Ativa/desativa o modo principal.
 
+    F7:
+        Ativa/desativa o movimento lateral.
+
     Quando ativo e parado:
         - W fica pressionado.
-        - A ou D fica pressionado.
+        - A ou D fica pressionado se o movimento lateral estiver ativo.
         - Um watchdog reforça W + A/D periodicamente.
 
     A cada clique:
@@ -78,6 +82,7 @@ class AccessibilityWatcher:
 
     def __init__(self):
         self.main_mode = False
+        self.side_movement_enabled = True
         self.current_side_hold_key = None
 
         self.lock = threading.RLock()
@@ -156,7 +161,10 @@ class AccessibilityWatcher:
                 if self.main_mode and not self.action_running:
                     keyboard.press(HOLD_KEY_FORWARD)
 
-                    if self.current_side_hold_key is not None:
+                    if (
+                        self.side_movement_enabled
+                        and self.current_side_hold_key is not None
+                    ):
                         keyboard.press(self.current_side_hold_key)
 
             time.sleep(HOLD_REFRESH_INTERVAL)
@@ -190,8 +198,11 @@ class AccessibilityWatcher:
             if self.main_mode:
                 keyboard.press(HOLD_KEY_FORWARD)
 
-                next_side_key = self._get_next_side_key(previous_side_key)
-                self._press_side_hold_key(next_side_key)
+                if self.side_movement_enabled:
+                    next_side_key = self._get_next_side_key(previous_side_key)
+                    self._press_side_hold_key(next_side_key)
+                else:
+                    self._release_side_hold_keys()
 
             self.action_running = False
             self.release_timer = None
@@ -212,7 +223,9 @@ class AccessibilityWatcher:
                 print("Modo principal ativado")
 
                 keyboard.press(HOLD_KEY_FORWARD)
-                self._press_side_hold_key(INITIAL_SIDE_HOLD_KEY)
+
+                if self.side_movement_enabled:
+                    self._press_side_hold_key(INITIAL_SIDE_HOLD_KEY)
 
                 BeepService.activated()
 
@@ -227,6 +240,32 @@ class AccessibilityWatcher:
 
                 self.action_running = False
 
+                BeepService.deactivated()
+
+    # =======================================================
+    # F7
+    # =======================================================
+
+    def toggle_side_movement(self):
+        """
+        Liga/desliga apenas o movimento lateral A/D.
+        """
+
+        with self.lock:
+            self.side_movement_enabled = not self.side_movement_enabled
+
+            if self.side_movement_enabled:
+                print("Movimento lateral ativado")
+
+                if self.main_mode and not self.action_running:
+                    side_key = self.current_side_hold_key or INITIAL_SIDE_HOLD_KEY
+                    self._press_side_hold_key(side_key)
+
+                BeepService.activated()
+
+            else:
+                print("Movimento lateral desativado")
+                self._release_side_hold_keys()
                 BeepService.deactivated()
 
     # =======================================================
@@ -314,6 +353,7 @@ def main():
     print(" Accessibility Watcher")
     print("===================================")
     print(f"{HOTKEY_MAIN_MODE} -> Ativar/desativar")
+    print(f"{HOTKEY_SIDE_MODE} -> Ativar/desativar lateral")
     print(f"{HOTKEY_EXIT} -> Sair")
     print("")
 
@@ -326,6 +366,11 @@ def main():
     keyboard.add_hotkey(
         HOTKEY_MAIN_MODE,
         watcher.toggle_main_mode
+    )
+
+    keyboard.add_hotkey(
+        HOTKEY_SIDE_MODE,
+        watcher.toggle_side_movement
     )
 
     try:
