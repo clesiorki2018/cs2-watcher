@@ -148,6 +148,13 @@ class AccessibilityWatcher:
         self.release_timer.daemon = True
         self.release_timer.start()
 
+    def _cancel_release_timer(self) -> None:
+        if self.release_timer is None:
+            return
+
+        self.release_timer.cancel()
+        self.release_timer = None
+
     def _finish_click_effect(self, previous_side_key: Optional[str]) -> None:
         with self.lock:
             self.keyboard.release_effect()
