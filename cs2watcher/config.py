@@ -17,6 +17,7 @@ class WatcherConfig:
     action_duration: float = 0.70
     click_debounce: float = 0.10
     hold_refresh_interval: float = 0.10
+    hotkey_debounce: float = 0.30
 
     @property
     def initial_side_hold_key(self) -> str:

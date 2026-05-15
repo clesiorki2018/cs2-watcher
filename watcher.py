@@ -1,6 +1,6 @@
-import keyboard
 from pynput import mouse
 
+from cs2watcher.hotkeys import HotkeyListener
 from cs2watcher.watcher import AccessibilityWatcher
 
 
@@ -19,23 +19,22 @@ def main():
     mouse_listener = mouse.Listener(
         on_click=watcher.handle_click,
     )
-    mouse_listener.start()
-
-    keyboard.add_hotkey(
-        config.hotkey_main_mode,
+    hotkey_listener = HotkeyListener(
+        config,
         watcher.toggle_main_mode,
-    )
-    keyboard.add_hotkey(
-        config.hotkey_side_mode,
         watcher.toggle_side_movement,
     )
 
+    mouse_listener.start()
+    hotkey_listener.start()
+
     try:
-        keyboard.wait(config.hotkey_exit)
+        hotkey_listener.wait()
     finally:
         print("Finalizando...")
         watcher.shutdown()
         mouse_listener.stop()
+        hotkey_listener.stop()
 
 
 if __name__ == "__main__":
