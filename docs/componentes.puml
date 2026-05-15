@@ -1,0 +1,55 @@
+@startuml
+title Componentes - CS2 Watcher
+
+skinparam componentStyle rectangle
+
+actor Usuario
+
+component "watcher.py\n<<entrypoint>>" as Entrypoint
+component "cs2_watcher.sh\n<<script>>" as Script
+
+package "cs2watcher" {
+    component "AccessibilityWatcher" as AccessibilityWatcher
+    component "WatcherConfig" as WatcherConfig
+    component "HotkeyListener" as HotkeyListener
+    component "KeyboardController" as KeyboardController
+    component "BeepService" as BeepService
+}
+
+component "pynput.mouse\n<<external>>" as PynputMouse
+component "pynput.keyboard\n<<external>>" as PynputKeyboard
+component "keyboard\n<<external>>" as KeyboardLib
+component "threading\n<<external>>" as Threading
+component "time\n<<external>>" as TimeLib
+
+Usuario --> Script : executa
+Script --> Entrypoint : sudo python watcher.py
+
+Entrypoint --> AccessibilityWatcher : build_default()
+Entrypoint --> HotkeyListener : cria listener
+Entrypoint --> PynputMouse : mouse.Listener
+
+AccessibilityWatcher --> WatcherConfig : usa configuracao
+AccessibilityWatcher --> KeyboardController : pressiona/solta teclas
+AccessibilityWatcher --> BeepService : feedback sonoro
+AccessibilityWatcher --> Threading : RLock, Event, Timer, Thread
+AccessibilityWatcher --> TimeLib : monotonic(), sleep()
+
+HotkeyListener --> WatcherConfig : usa hotkeys/debounce
+HotkeyListener --> PynputKeyboard : keyboard.Listener
+HotkeyListener --> Threading : Event
+HotkeyListener --> TimeLib : monotonic()
+HotkeyListener ..> AccessibilityWatcher : callbacks\nF8/F7
+
+KeyboardController --> WatcherConfig : mapeia teclas
+KeyboardController --> KeyboardLib : keyboard.press/release
+
+PynputMouse ..> AccessibilityWatcher : on_click -> handle_click()
+
+note right of AccessibilityWatcher
+Coordena estado, timers,
+debounce e restauracao
+dos holds artificiais.
+end note
+
+@enduml

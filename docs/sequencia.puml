@@ -1,0 +1,72 @@
+@startuml
+title Sequencia - Ativar modo principal e executar efeito de clique
+
+actor Usuario
+participant "HotkeyListener" as Hotkeys
+participant "AccessibilityWatcher" as Watcher
+participant "KeyboardController" as Keyboard
+participant "BeepService" as Beep
+participant "pynput.mouse.Listener\n<<external>>" as Mouse
+participant "threading.Timer\n<<external>>" as Timer
+
+Usuario -> Hotkeys : pressiona F8
+Hotkeys -> Hotkeys : _handle_press(F8)
+Hotkeys -> Hotkeys : _can_trigger("main")
+Hotkeys -> Watcher : toggle_main_mode()
+activate Watcher
+Watcher -> Watcher : _activate_main_mode()
+Watcher -> Keyboard : press_forward()
+
+alt side_movement_enabled
+    Watcher -> Watcher : _press_side_hold_key("d")
+    Watcher -> Keyboard : release_side_keys()
+    Watcher -> Keyboard : press_key("d")
+end
+
+Watcher -> Beep : activated()
+deactivate Watcher
+
+Usuario -> Mouse : clica
+Mouse -> Watcher : handle_click(x, y, button, pressed=True)
+activate Watcher
+Watcher -> Watcher : _should_ignore_click(now)
+
+alt clique aceito e action_running == False
+    Watcher -> Watcher : _start_click_effect()
+    Watcher -> Watcher : _cancel_release_timer()
+    Watcher -> Keyboard : release_forward()
+    Watcher -> Keyboard : release_side_keys()
+    Watcher -> Keyboard : press_effect()
+    Watcher -> Timer : Timer(action_duration,\n_finish_click_effect,\nprevious_side_key)
+    Watcher -> Timer : start()
+else clique ignorado
+    Watcher --> Mouse : retorna sem acao
+end
+
+deactivate Watcher
+
+... apos action_duration ...
+
+Timer -> Watcher : _finish_click_effect(previous_side_key)
+activate Watcher
+Watcher -> Keyboard : release_effect()
+
+alt main_mode ativo
+    Watcher -> Keyboard : press_forward()
+    Watcher -> Watcher : _restore_side_movement(previous_side_key)
+    Watcher -> Watcher : _get_next_side_key(previous_side_key)
+    Watcher -> Keyboard : release_side_keys()
+    Watcher -> Keyboard : press_key(next_side_key)
+else main_mode desativado
+    Watcher -> Keyboard : release_side_keys()
+end
+
+Watcher -> Watcher : action_running = False\nrelease_timer = None
+deactivate Watcher
+
+note right of Watcher
+O debounce evita cliques repetidos
+e o timer delimita o tempo do CTRL.
+end note
+
+@enduml

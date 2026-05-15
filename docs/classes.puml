@@ -1,0 +1,102 @@
+@startuml
+title Classes - CS2 Watcher
+
+skinparam classAttributeIconSize 0
+
+class WatcherConfig <<dataclass frozen>> {
+    +hotkey_main_mode: str
+    +hotkey_side_mode: str
+    +hotkey_exit: str
+    +hold_key_forward: str
+    +hold_key_right: str
+    +hold_key_left: str
+    +effect_key: str
+    +action_duration: float
+    +click_debounce: float
+    +hold_refresh_interval: float
+    +hotkey_debounce: float
+    +initial_side_hold_key: str
+}
+
+class AccessibilityWatcher {
+    +config: WatcherConfig
+    +keyboard: KeyboardController
+    +beep: BeepService
+    +main_mode: bool
+    +side_movement_enabled: bool
+    +current_side_hold_key: Optional[str]
+    +release_timer: Optional[Timer]
+    +last_click_time: float
+    +action_running: bool
+    +stop_event: Event
+    +build_default(): AccessibilityWatcher
+    +toggle_main_mode(): None
+    +toggle_side_movement(): None
+    +handle_click(_x, _y, _button, pressed: bool): None
+    +shutdown(): None
+}
+
+class HotkeyListener {
+    +config: WatcherConfig
+    +on_main_mode: Callable
+    +on_side_movement: Callable
+    +stop_event: Event
+    +last_trigger_time: dict[str, float]
+    +start(): None
+    +wait(): None
+    +stop(): None
+    -_handle_press(key): bool | None
+    -_can_trigger(action: str): bool
+    -_key_from_name(name: str)
+}
+
+class KeyboardController {
+    +config: WatcherConfig
+    +press_forward(): None
+    +release_forward(): None
+    +press_effect(): None
+    +release_effect(): None
+    +press_key(key: str): None
+    +release_side_keys(): None
+    +release_all(): None
+}
+
+class BeepService {
+    +activated(): None
+    +deactivated(): None
+}
+
+class "pynput.mouse.Listener" as MouseListener <<external>>
+class "pynput.keyboard.Listener" as KeyboardListener <<external>>
+class "keyboard" as KeyboardLib <<external>>
+class "threading.Timer" as Timer <<external>>
+class "threading.Thread" as Thread <<external>>
+class "threading.Event" as Event <<external>>
+class "time" as TimeLib <<external>>
+
+AccessibilityWatcher *-- WatcherConfig
+AccessibilityWatcher *-- KeyboardController
+AccessibilityWatcher *-- BeepService
+AccessibilityWatcher --> Timer
+AccessibilityWatcher --> Thread
+AccessibilityWatcher --> Event
+AccessibilityWatcher --> TimeLib
+
+HotkeyListener o-- WatcherConfig
+HotkeyListener --> KeyboardListener
+HotkeyListener --> Event
+HotkeyListener --> TimeLib
+HotkeyListener ..> AccessibilityWatcher : on_main_mode()\non_side_movement()
+
+KeyboardController o-- WatcherConfig
+KeyboardController --> KeyboardLib
+
+MouseListener ..> AccessibilityWatcher : handle_click()
+
+note bottom of HotkeyListener
+Callbacks desacoplam a captura
+fisica de hotkeys da regra
+de negocio do watcher.
+end note
+
+@enduml
