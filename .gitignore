@@ -13,6 +13,7 @@ env/
 # Environment and local config
 .env
 .env.*
+!.env.example
 *.local
 
 # Logs and runtime files
@@ -23,6 +24,8 @@ tmp.txt
 
 # Test and coverage output
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
 .coverage
 htmlcov/
 

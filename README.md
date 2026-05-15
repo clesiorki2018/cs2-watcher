@@ -20,7 +20,8 @@ O projeto separa a regra de negocio da integracao com teclado, mouse e hotkeys, 
 ```text
 .
 |-- watcher.py                 # ponto de entrada da aplicacao
-|-- cs2_watcher.sh             # script local para ativar venv e executar com sudo
+|-- cs2_watcher.sh             # script local que carrega .env e executa com sudo
+|-- .env.example               # modelo de configuracao local
 |-- cs2watcher/
 |   |-- config.py              # configuracao de teclas, hotkeys e tempos
 |   |-- hotkeys.py             # listener de hotkeys fisicas
@@ -51,15 +52,41 @@ O projeto separa a regra de negocio da integracao com teclado, mouse e hotkeys, 
   - PlantUML
   - Graphviz (`dot`)
 
+Instalacao das dependencias Python:
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+## Configuracao Local
+
+Copie o modelo de ambiente e ajuste os caminhos da sua maquina:
+
+```bash
+cp .env.example .env
+```
+
+O `.env` real fica fora do Git e pode conter caminhos locais, como:
+
+```dotenv
+CS2_WATCHER_PROJECT_DIR=/home/seu-usuario/projetos/cs2
+CS2_WATCHER_VENV_DIR=/home/seu-usuario/projetos/cs2/.venvcs2
+CS2_WATCHER_PYTHON_BIN=/home/seu-usuario/projetos/cs2/.venvcs2/bin/python
+CS2_WATCHER_USE_SUDO=1
+CS2_WATCHER_SUDO_BIN=sudo
+```
+
+As teclas e tempos tambem podem ser sobrescritos no `.env`.
+
 ## Execucao
 
-O script local espera um ambiente virtual chamado `.venvcs2` na raiz do projeto:
+O script local carrega `.env`, entra no diretorio configurado e executa o watcher:
 
 ```bash
 ./cs2_watcher.sh
 ```
 
-Execucao direta:
+Execucao direta, usando as configuracoes padrao do codigo ou variaveis ja exportadas no shell:
 
 ```bash
 sudo python watcher.py
@@ -69,7 +96,7 @@ O `sudo` pode ser necessario porque a biblioteca `keyboard` normalmente precisa 
 
 ## Configuracao
 
-Os atalhos, teclas e tempos ficam em `cs2watcher/config.py`:
+Os atalhos, teclas e tempos padrao ficam em `cs2watcher/config.py` e podem ser sobrescritos pelo `.env`:
 
 ```python
 hotkey_main_mode = "f8"

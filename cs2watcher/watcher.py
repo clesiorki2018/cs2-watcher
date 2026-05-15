@@ -37,7 +37,7 @@ class AccessibilityWatcher:
 
     @classmethod
     def build_default(cls) -> "AccessibilityWatcher":
-        config = WatcherConfig()
+        config = WatcherConfig.from_env()
         keyboard_controller = KeyboardController(config)
 
         return cls(config, keyboard_controller, BeepService())

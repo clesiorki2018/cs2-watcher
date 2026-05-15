@@ -1,5 +1,27 @@
 #!/usr/bin/bash
 
-cd /home/max/projetos/jogos/cs2/
-. .venvcs2/bin/activate
-sudo ./.venvcs2/bin/python watcher.py
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ENV_FILE="${CS2_WATCHER_ENV_FILE:-$SCRIPT_DIR/.env}"
+
+if [ -f "$ENV_FILE" ]; then
+    set -a
+    . "$ENV_FILE"
+    set +a
+fi
+
+PROJECT_DIR="${CS2_WATCHER_PROJECT_DIR:-$SCRIPT_DIR}"
+VENV_DIR="${CS2_WATCHER_VENV_DIR:-$PROJECT_DIR/.venvcs2}"
+PYTHON_BIN="${CS2_WATCHER_PYTHON_BIN:-$VENV_DIR/bin/python}"
+SUDO_BIN="${CS2_WATCHER_SUDO_BIN:-sudo}"
+USE_SUDO="${CS2_WATCHER_USE_SUDO:-1}"
+PRESERVE_ENV="CS2_HOTKEY_MAIN_MODE,CS2_HOTKEY_SIDE_MODE,CS2_HOTKEY_EXIT,CS2_HOLD_KEY_FORWARD,CS2_HOLD_KEY_RIGHT,CS2_HOLD_KEY_LEFT,CS2_EFFECT_KEY,CS2_ACTION_DURATION,CS2_CLICK_DEBOUNCE,CS2_HOLD_REFRESH_INTERVAL,CS2_HOTKEY_DEBOUNCE"
+
+cd "$PROJECT_DIR"
+
+if [ "$USE_SUDO" = "1" ]; then
+    exec "$SUDO_BIN" "--preserve-env=$PRESERVE_ENV" "$PYTHON_BIN" watcher.py
+fi
+
+exec "$PYTHON_BIN" watcher.py

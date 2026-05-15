@@ -14,7 +14,7 @@ Contexto do projeto:
 - `HotkeyListener` escuta teclas fisicas com `pynput.keyboard.Listener`.
 - `KeyboardController` isola chamadas da biblioteca externa `keyboard`.
 - `BeepService` fornece feedback sonoro via terminal bell.
-- O script `cs2_watcher.sh` ativa o ambiente virtual e executa `watcher.py` com sudo.
+- O script `cs2_watcher.sh` carrega `.env`, resolve caminhos locais e executa `watcher.py` com sudo.
 
 Arquivos e responsabilidades:
 
@@ -174,4 +174,3 @@ Regras de saida:
 - Quando representar bibliotecas externas, use estereotipo `<<external>>`.
 - Use notas curtas somente onde ajudarem a explicar concorrencia, debounce ou timers.
 ```
-
