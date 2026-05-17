@@ -1,8 +1,23 @@
 #!/usr/bin/bash
+#
+# Copyright 2026 Clesiorki
+# SPDX-License-Identifier: Apache-2.0
 
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_PATH="${BASH_SOURCE[0]}"
+
+while [ -L "$SCRIPT_PATH" ]; do
+    LINK_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
+    SCRIPT_PATH="$(readlink "$SCRIPT_PATH")"
+
+    case "$SCRIPT_PATH" in
+        /*) ;;
+        *) SCRIPT_PATH="$LINK_DIR/$SCRIPT_PATH" ;;
+    esac
+done
+
+SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
 ENV_FILE="${CS2_WATCHER_ENV_FILE:-$SCRIPT_DIR/.env}"
 
 if [ -f "$ENV_FILE" ]; then

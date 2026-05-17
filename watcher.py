@@ -1,3 +1,6 @@
+# Copyright 2026 Clesiorki
+# SPDX-License-Identifier: Apache-2.0
+
 from pynput import mouse
 
 from cs2watcher.hotkeys import HotkeyListener

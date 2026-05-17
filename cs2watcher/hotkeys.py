@@ -1,3 +1,6 @@
+# Copyright 2026 Clesiorki
+# SPDX-License-Identifier: Apache-2.0
+
 import threading
 import time
 from typing import Callable

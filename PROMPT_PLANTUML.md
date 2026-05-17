@@ -1,3 +1,8 @@
+<!--
+Copyright 2026 Clesiorki
+SPDX-License-Identifier: Apache-2.0
+-->
+
 # Prompt PlantUML do projeto CS2 Watcher
 
 Use este prompt para gerar diagramas PlantUML fiéis ao projeto.

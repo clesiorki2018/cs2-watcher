@@ -1,3 +1,8 @@
+<!--
+Copyright 2026 Clesiorki
+SPDX-License-Identifier: Apache-2.0
+-->
+
 # CS2 Watcher
 
 Ferramenta de acessibilidade para Counter-Strike 2 que automatiza holds de teclado e aplica um efeito temporario de `CTRL` ao clicar com o mouse.
@@ -22,6 +27,8 @@ O projeto separa a regra de negocio da integracao com teclado, mouse e hotkeys, 
 |-- watcher.py                 # ponto de entrada da aplicacao
 |-- cs2_watcher.sh             # script local que carrega .env e executa com sudo
 |-- .env.example               # modelo de configuracao local
+|-- LICENSE                    # licenca Apache 2.0
+|-- NOTICE                     # avisos de copyright e marca
 |-- cs2watcher/
 |   |-- config.py              # configuracao de teclas, hotkeys e tempos
 |   |-- hotkeys.py             # listener de hotkeys fisicas
@@ -52,13 +59,22 @@ O projeto separa a regra de negocio da integracao com teclado, mouse e hotkeys, 
   - PlantUML
   - Graphviz (`dot`)
 
-Instalacao das dependencias Python:
+## Configuracao do Ambiente
+
+Entre na pasta do projeto e crie um ambiente virtual:
 
 ```bash
-python -m pip install -r requirements.txt
+cd /home/seu-usuario/projetos/cs2
+python3 -m venv .venvcs2
 ```
 
-## Configuracao Local
+Ative o ambiente e instale as dependencias:
+
+```bash
+. .venvcs2/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
 
 Copie o modelo de ambiente e ajuste os caminhos da sua maquina:
 
@@ -66,7 +82,7 @@ Copie o modelo de ambiente e ajuste os caminhos da sua maquina:
 cp .env.example .env
 ```
 
-O `.env` real fica fora do Git e pode conter caminhos locais, como:
+Exemplo de `.env` local:
 
 ```dotenv
 CS2_WATCHER_PROJECT_DIR=/home/seu-usuario/projetos/cs2
@@ -74,6 +90,32 @@ CS2_WATCHER_VENV_DIR=/home/seu-usuario/projetos/cs2/.venvcs2
 CS2_WATCHER_PYTHON_BIN=/home/seu-usuario/projetos/cs2/.venvcs2/bin/python
 CS2_WATCHER_USE_SUDO=1
 CS2_WATCHER_SUDO_BIN=sudo
+```
+
+Garanta permissao de execucao no launcher:
+
+```bash
+chmod +x cs2_watcher.sh
+```
+
+Se quiser chamar de qualquer lugar do sistema, crie um link simbolico em um
+diretorio do `PATH`, por exemplo:
+
+```bash
+mkdir -p ~/.local/bin
+ln -s /home/seu-usuario/projetos/cs2/cs2_watcher.sh ~/.local/bin/cs2-watcher
+```
+
+Confirme que `~/.local/bin` esta no `PATH`:
+
+```bash
+echo "$PATH"
+```
+
+Se nao estiver, adicione ao arquivo de perfil do seu shell, como `~/.bashrc`:
+
+```bash
+export PATH="$HOME/.local/bin:$PATH"
 ```
 
 As teclas e tempos tambem podem ser sobrescritos no `.env`.
@@ -84,6 +126,14 @@ O script local carrega `.env`, entra no diretorio configurado e executa o watche
 
 ```bash
 ./cs2_watcher.sh
+```
+
+Ele tambem pode ser chamado de outro diretorio ou por um link simbolico em um
+diretorio do `PATH`:
+
+```bash
+ln -s /home/seu-usuario/projetos/cs2/cs2_watcher.sh ~/.local/bin/cs2-watcher
+cs2-watcher
 ```
 
 Execucao direta, usando as configuracoes padrao do codigo ou variaveis ja exportadas no shell:
@@ -149,3 +199,11 @@ plantuml -tpng docs/*.puml
 ## Observacoes
 
 Este projeto automatiza entrada de teclado/mouse. Use apenas em ambientes permitidos e respeite as regras do jogo, plataforma ou servidor onde for executar.
+
+## Licenca e Marca
+
+Este projeto e licenciado sob a Apache License, Version 2.0. Consulte
+[LICENSE](LICENSE) para os termos completos.
+
+Clesiorki e uma marca registrada de seu respectivo titular. Consulte
+[NOTICE](NOTICE) para os avisos de copyright e marca.
