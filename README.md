@@ -5,7 +5,7 @@ SPDX-License-Identifier: Apache-2.0
 
 # CS2 Watcher
 
-Ferramenta de acessibilidade para Counter-Strike 2 que automatiza holds de teclado e aplica um efeito temporario de `CTRL` ao clicar com o mouse.
+Ferramenta de acessibilidade para Counter-Strike 2 que automatiza holds de teclado, alterna o movimento lateral e aplica `CTRL` temporario no clique.
 
 O projeto separa a regra de negocio da integracao com teclado, mouse e hotkeys, mantendo a configuracao centralizada e a logica principal em `AccessibilityWatcher`.
 
@@ -15,8 +15,9 @@ O projeto separa a regra de negocio da integracao com teclado, mouse e hotkeys, 
 - `F7`: ativa ou desativa o movimento lateral automatico.
 - `ESC`: encerra o watcher.
 - Hold continuo de `W` enquanto o modo principal esta ativo.
-- Hold lateral alternado entre `D` e `A` apos cada clique aceito.
-- Ao clicar, solta `W/A/D`, pressiona `CTRL` por um tempo configurado e restaura o movimento.
+- Hold lateral alternado automaticamente entre `D` e `A`.
+- Alternancia lateral com intervalo variavel entre `0.5s` e `1.0s` por padrao.
+- Ao clicar, solta `W/A/D`, pressiona `CTRL` por `0.8s` e restaura o movimento.
 - Debounce para evitar acionamentos duplicados de hotkeys e cliques.
 - Thread de refresh para reaplicar holds artificiais quando necessario.
 
@@ -50,7 +51,7 @@ O projeto separa a regra de negocio da integracao com teclado, mouse e hotkeys, 
 
 - Linux.
 - Python 3.
-- Permissao para capturar mouse/teclado e injetar teclas.
+- Permissao para capturar mouse/hotkeys e injetar teclas.
 - Bibliotecas Python:
   - `keyboard`
   - `pynput`
@@ -158,10 +159,12 @@ hold_key_right = "d"
 hold_key_left = "a"
 effect_key = "ctrl"
 
-action_duration = 0.70
+action_duration = 0.80
 click_debounce = 0.10
 hold_refresh_interval = 0.10
 hotkey_debounce = 0.30
+side_switch_min_interval = 0.50
+side_switch_max_interval = 1.00
 ```
 
 ## Diagramas
@@ -192,9 +195,10 @@ plantuml -tpng docs/*.puml
 2. A aplicacao cria o `AccessibilityWatcher`, o listener de mouse e o `HotkeyListener`.
 3. Ao pressionar `F8`, o modo principal e ativado.
 4. O watcher pressiona `W` e, se o movimento lateral estiver ativo, pressiona `D`.
-5. Ao clicar, o watcher aplica debounce, solta `W/A/D`, pressiona `CTRL` e agenda um timer.
-6. Quando o timer termina, o watcher solta `CTRL`, restaura `W` e alterna a lateral entre `A` e `D`.
-7. Ao pressionar `ESC`, a aplicacao encerra e solta todas as teclas.
+5. A thread de refresh mantem os holds artificiais ativos.
+6. Quando o intervalo lateral vence, o watcher alterna entre `A` e `D` e agenda o proximo intervalo.
+7. Ao clicar, o watcher solta `W/A/D`, pressiona `CTRL` por `0.8s` e restaura `W` e a lateral.
+8. Ao pressionar `ESC`, a aplicacao encerra e solta todas as teclas.
 
 ## Observacoes
 

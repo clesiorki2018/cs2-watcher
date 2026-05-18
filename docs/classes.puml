@@ -18,6 +18,8 @@ class WatcherConfig <<dataclass frozen>> {
     +click_debounce: float
     +hold_refresh_interval: float
     +hotkey_debounce: float
+    +side_switch_min_interval: float
+    +side_switch_max_interval: float
     +initial_side_hold_key: str
 }
 
@@ -32,6 +34,7 @@ class AccessibilityWatcher {
     +last_click_time: float
     +action_running: bool
     +stop_event: Event
+    +next_side_switch_time: float
     +build_default(): AccessibilityWatcher
     +toggle_main_mode(): None
     +toggle_side_movement(): None
@@ -76,6 +79,7 @@ class "threading.Timer" as Timer <<external>>
 class "threading.Thread" as Thread <<external>>
 class "threading.Event" as Event <<external>>
 class "time" as TimeLib <<external>>
+class "random.uniform" as RandomUniform <<external>>
 
 AccessibilityWatcher *-- WatcherConfig
 AccessibilityWatcher *-- KeyboardController
@@ -84,6 +88,7 @@ AccessibilityWatcher --> Timer
 AccessibilityWatcher --> Thread
 AccessibilityWatcher --> Event
 AccessibilityWatcher --> TimeLib
+AccessibilityWatcher --> RandomUniform
 
 HotkeyListener o-- WatcherConfig
 HotkeyListener --> KeyboardListener

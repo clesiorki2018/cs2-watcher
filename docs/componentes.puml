@@ -19,11 +19,12 @@ package "cs2watcher" {
     component "BeepService" as BeepService
 }
 
-component "pynput.mouse\n<<external>>" as PynputMouse
 component "pynput.keyboard\n<<external>>" as PynputKeyboard
+component "pynput.mouse\n<<external>>" as PynputMouse
 component "keyboard\n<<external>>" as KeyboardLib
 component "threading\n<<external>>" as Threading
 component "time\n<<external>>" as TimeLib
+component "random\n<<stdlib>>" as RandomLib
 
 Usuario --> Script : executa
 Script --> Entrypoint : sudo python watcher.py
@@ -37,6 +38,7 @@ AccessibilityWatcher --> KeyboardController : pressiona/solta teclas
 AccessibilityWatcher --> BeepService : feedback sonoro
 AccessibilityWatcher --> Threading : RLock, Event, Timer, Thread
 AccessibilityWatcher --> TimeLib : monotonic(), sleep()
+AccessibilityWatcher --> RandomLib : uniform()
 
 HotkeyListener --> WatcherConfig : usa hotkeys/debounce
 HotkeyListener --> PynputKeyboard : keyboard.Listener
@@ -50,8 +52,8 @@ KeyboardController --> KeyboardLib : keyboard.press/release
 PynputMouse ..> AccessibilityWatcher : on_click -> handle_click()
 
 note right of AccessibilityWatcher
-Coordena estado, timers,
-debounce e restauracao
+Coordena refresh, clique
+e alternancia automatica
 dos holds artificiais.
 end note
 

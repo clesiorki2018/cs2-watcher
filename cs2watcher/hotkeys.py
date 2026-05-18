@@ -26,6 +26,7 @@ class HotkeyListener:
         self.stop_event = threading.Event()
         self.last_trigger_time: dict[str, float] = {}
 
+        # pynput usa objetos Key para teclas especiais como F8 e ESC.
         self.main_mode_key = self._key_from_name(config.hotkey_main_mode)
         self.side_movement_key = self._key_from_name(config.hotkey_side_mode)
         self.exit_key = self._key_from_name(config.hotkey_exit)
@@ -61,6 +62,7 @@ class HotkeyListener:
         now = time.monotonic()
         last_time = self.last_trigger_time.get(action, 0.0)
 
+        # debounce evita repeticao quando o sistema segura a hotkey.
         if (now - last_time) < self.config.hotkey_debounce:
             return False
 

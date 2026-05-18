@@ -9,19 +9,24 @@ from dataclasses import dataclass
 class WatcherConfig:
     """Configuração central de atalhos, teclas e tempos."""
 
+    # hotkeys controlam o watcher fora das teclas injetadas.
     hotkey_main_mode: str = "f8"
     hotkey_side_mode: str = "f7"
     hotkey_exit: str = "esc"
 
+    # teclas de movimento seguem o layout comum do CS2.
     hold_key_forward: str = "w"
     hold_key_right: str = "d"
     hold_key_left: str = "a"
     effect_key: str = "ctrl"
 
-    action_duration: float = 0.70
+    # tempos sao definidos em segundos.
+    action_duration: float = 0.80
     click_debounce: float = 0.10
     hold_refresh_interval: float = 0.10
     hotkey_debounce: float = 0.30
+    side_switch_min_interval: float = 0.50
+    side_switch_max_interval: float = 1.00
 
     @classmethod
     def from_env(cls) -> "WatcherConfig":
@@ -45,6 +50,14 @@ class WatcherConfig:
                 cls.hold_refresh_interval,
             ),
             hotkey_debounce=_get_env_float("CS2_HOTKEY_DEBOUNCE", cls.hotkey_debounce),
+            side_switch_min_interval=_get_env_float(
+                "CS2_SIDE_SWITCH_MIN_INTERVAL",
+                cls.side_switch_min_interval,
+            ),
+            side_switch_max_interval=_get_env_float(
+                "CS2_SIDE_SWITCH_MAX_INTERVAL",
+                cls.side_switch_max_interval,
+            ),
         )
 
     @property
@@ -53,6 +66,7 @@ class WatcherConfig:
 
 
 def _get_env_str(name: str, default: str) -> str:
+    # valor vazio preserva o padrao do codigo.
     value = os.getenv(name)
 
     if value is None or value == "":
@@ -62,6 +76,7 @@ def _get_env_str(name: str, default: str) -> str:
 
 
 def _get_env_float(name: str, default: float) -> float:
+    # valor vazio preserva o padrao do codigo.
     value = os.getenv(name)
 
     if value is None or value == "":

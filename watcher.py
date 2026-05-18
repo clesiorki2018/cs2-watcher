@@ -8,6 +8,7 @@ from cs2watcher.watcher import AccessibilityWatcher
 
 
 def main():
+    # constroi os servicos antes de abrir listeners do sistema.
     watcher = AccessibilityWatcher.build_default()
     config = watcher.config
 
@@ -17,8 +18,11 @@ def main():
     print(f"{config.hotkey_main_mode} -> Ativar/desativar")
     print(f"{config.hotkey_side_mode} -> Ativar/desativar lateral")
     print(f"{config.hotkey_exit} -> Sair")
+    print("A/D -> Alternancia automatica entre 0.5s e 1.0s")
+    print("Clique -> CTRL por 0.8s")
     print("")
 
+    # mouse dispara o efeito temporario sem controlar a alternancia.
     mouse_listener = mouse.Listener(
         on_click=watcher.handle_click,
     )
@@ -34,6 +38,7 @@ def main():
     try:
         hotkey_listener.wait()
     finally:
+        # solta teclas injetadas antes de encerrar o processo.
         print("Finalizando...")
         watcher.shutdown()
         mouse_listener.stop()

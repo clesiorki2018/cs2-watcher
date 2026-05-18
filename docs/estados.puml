@@ -19,10 +19,9 @@ state ModoPrincipalAtivo {
 
     MovimentoLateralAtivo --> MovimentoLateralDesativado : F7 / _disable_side_movement()
     MovimentoLateralDesativado --> MovimentoLateralAtivo : F7 / _enable_side_movement()
-
+    MovimentoLateralAtivo --> MovimentoLateralAtivo : intervalo vencido /\n_switch_side_when_due()
     MovimentoLateralAtivo --> EfeitoCliqueEmExecucao : clique aceito /\n_start_click_effect()
     MovimentoLateralDesativado --> EfeitoCliqueEmExecucao : clique aceito /\n_start_click_effect()
-
     EfeitoCliqueEmExecucao --> MovimentoLateralAtivo : timer finalizado /\n_finish_click_effect()\nside_movement_enabled
     EfeitoCliqueEmExecucao --> MovimentoLateralDesativado : timer finalizado /\n_finish_click_effect()\n!side_movement_enabled
 }
@@ -35,14 +34,14 @@ ModoPrincipalAtivo --> [*] : shutdown()
 
 note right of ModoPrincipalAtivo
 Enquanto ativo, uma thread de refresh
-reaplica W e a tecla lateral atual
-quando nao ha efeito de clique em execucao.
+reaplica W e alterna A/D conforme
+o intervalo aleatorio configurado.
 end note
 
 note bottom of EfeitoCliqueEmExecucao
 Durante o efeito:
 W/A/D sao soltas,
-CTRL fica pressionado,
+CTRL fica pressionado por 0.8s,
 e a restauracao ocorre pelo timer.
 end note
 

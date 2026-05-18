@@ -3,6 +3,7 @@
 
 import threading
 import time
+from random import uniform
 from typing import Optional
 
 from cs2watcher.config import WatcherConfig
@@ -10,7 +11,7 @@ from cs2watcher.io import BeepService, KeyboardController
 
 
 class AccessibilityWatcher:
-    """Coordena modo principal, movimento lateral e efeito do clique."""
+    """Coordena modo principal, movimento lateral e efeito de clique."""
 
     def __init__(
         self,
@@ -26,11 +27,13 @@ class AccessibilityWatcher:
         self.side_movement_enabled = True
         self.current_side_hold_key: Optional[str] = None
 
+        # estado compartilhado fica protegido por lock reentrante.
         self.lock = threading.RLock()
         self.release_timer: Optional[threading.Timer] = None
         self.last_click_time = 0.0
         self.action_running = False
         self.stop_event = threading.Event()
+        self.next_side_switch_time = 0.0
 
         self.hold_refresh_thread = threading.Thread(
             target=self._hold_refresh_loop,
@@ -70,7 +73,7 @@ class AccessibilityWatcher:
             self._disable_side_movement()
 
     def handle_click(self, _x, _y, _button, pressed: bool) -> None:
-        """Executa o efeito de CTRL para cada clique aceito."""
+        """Executa CTRL temporario para cada clique aceito."""
 
         if not pressed or not self.main_mode:
             return
@@ -101,10 +104,11 @@ class AccessibilityWatcher:
     def _activate_main_mode(self) -> None:
         print("Modo principal ativado")
 
-        self.keyboard.press_forward()
+        self._keep_forward_pressed()
 
         if self.side_movement_enabled:
             self._press_side_hold_key(self.config.initial_side_hold_key)
+            self._schedule_next_side_switch()
 
         self.beep.activated()
 
@@ -120,15 +124,18 @@ class AccessibilityWatcher:
     def _enable_side_movement(self) -> None:
         print("Movimento lateral ativado")
 
-        if self.main_mode and not self.action_running:
+        if self.main_mode:
             side_key = self.current_side_hold_key or self.config.initial_side_hold_key
             self._press_side_hold_key(side_key)
+            self._schedule_next_side_switch()
 
         self.beep.activated()
 
     def _disable_side_movement(self) -> None:
         print("Movimento lateral desativado")
         self._release_side_hold_keys()
+        self._keep_forward_pressed()
+        self.next_side_switch_time = 0.0
         self.beep.deactivated()
 
     def _start_click_effect(self) -> None:
@@ -162,11 +169,12 @@ class AccessibilityWatcher:
         with self.lock:
             self.keyboard.release_effect()
 
+            self.action_running = False
+
             if self.main_mode:
-                self.keyboard.press_forward()
+                self._keep_forward_pressed()
                 self._restore_side_movement(previous_side_key)
 
-            self.action_running = False
             self.release_timer = None
 
     def _restore_side_movement(self, previous_side_key: Optional[str]) -> None:
@@ -176,16 +184,23 @@ class AccessibilityWatcher:
 
         next_side_key = self._get_next_side_key(previous_side_key)
         self._press_side_hold_key(next_side_key)
+        self._schedule_next_side_switch()
 
     def _hold_refresh_loop(self) -> None:
-        # Alguns jogos perdem holds artificiais; o refresh mantém o estado.
+        # alguns jogos perdem holds artificiais; o refresh mantem o estado.
         while not self.stop_event.is_set():
             with self.lock:
                 if self.main_mode and not self.action_running:
-                    self.keyboard.press_forward()
+                    self._keep_forward_pressed()
                     self._refresh_side_hold()
+                    self._switch_side_when_due()
 
             time.sleep(self.config.hold_refresh_interval)
+
+    def _keep_forward_pressed(self) -> None:
+        # W e o hold base do modo principal e nunca depende da lateral.
+        if self.main_mode and not self.action_running:
+            self.keyboard.press_forward()
 
     def _refresh_side_hold(self) -> None:
         if not self.side_movement_enabled:
@@ -196,6 +211,7 @@ class AccessibilityWatcher:
 
     def _press_side_hold_key(self, key: str) -> None:
         self._release_side_hold_keys()
+        self._keep_forward_pressed()
         self.keyboard.press_key(key)
         self.current_side_hold_key = key
 
@@ -213,6 +229,33 @@ class AccessibilityWatcher:
             return self.config.hold_key_right
 
         return self.config.initial_side_hold_key
+
+    def _switch_side_when_due(self) -> None:
+        # alternancia automatica substitui a dependencia de clique.
+        if not self.side_movement_enabled:
+            return
+
+        now = time.monotonic()
+
+        if now < self.next_side_switch_time:
+            return
+
+        next_side_key = self._get_next_side_key(self.current_side_hold_key)
+        self._press_side_hold_key(next_side_key)
+        self._schedule_next_side_switch()
+
+    def _schedule_next_side_switch(self) -> None:
+        # intervalo variavel evita um padrao fixo entre A e D.
+        min_interval = self.config.side_switch_min_interval
+        max_interval = self.config.side_switch_max_interval
+
+        if max_interval < min_interval:
+            max_interval = min_interval
+
+        self.next_side_switch_time = time.monotonic() + uniform(
+            min_interval,
+            max_interval,
+        )
 
     def _should_ignore_click(self, now: float) -> bool:
         return (now - self.last_click_time) < self.config.click_debounce

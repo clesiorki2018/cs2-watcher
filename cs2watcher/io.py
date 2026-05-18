@@ -10,9 +10,11 @@ class BeepService:
     """Serviço de feedback sonoro via terminal bell."""
 
     def activated(self) -> None:
+        # um bell indica ativacao.
         print("\a", flush=True)
 
     def deactivated(self) -> None:
+        # dois bells indicam desativacao.
         print("\a\a", flush=True)
 
 
@@ -20,6 +22,7 @@ class KeyboardController:
     """Isola operações de teclado usadas pela lógica do watcher."""
 
     def __init__(self, config: WatcherConfig):
+        # guarda a configuracao para evitar teclas espalhadas pelo codigo.
         self.config = config
 
     def press_forward(self) -> None:
