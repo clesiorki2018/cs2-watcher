@@ -52,9 +52,9 @@ KeyboardController --> KeyboardLib : keyboard.press/release
 PynputMouse ..> AccessibilityWatcher : on_click -> handle_click()
 
 note right of AccessibilityWatcher
-Coordena refresh, clique
-e alternancia automatica
-dos holds artificiais.
+Coordena threads de W,
+clique e alternancia
+dos holds laterais.
 end note
 
 @enduml

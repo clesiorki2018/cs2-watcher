@@ -35,11 +35,16 @@ class AccessibilityWatcher:
         self.stop_event = threading.Event()
         self.next_side_switch_time = 0.0
 
-        self.hold_refresh_thread = threading.Thread(
-            target=self._hold_refresh_loop,
+        self.forward_hold_thread = threading.Thread(
+            target=self._forward_hold_loop,
             daemon=True,
         )
-        self.hold_refresh_thread.start()
+        self.side_movement_thread = threading.Thread(
+            target=self._side_movement_loop,
+            daemon=True,
+        )
+        self.forward_hold_thread.start()
+        self.side_movement_thread.start()
 
     @classmethod
     def build_default(cls) -> "AccessibilityWatcher":
@@ -134,7 +139,6 @@ class AccessibilityWatcher:
     def _disable_side_movement(self) -> None:
         print("Movimento lateral desativado")
         self._release_side_hold_keys()
-        self._keep_forward_pressed()
         self.next_side_switch_time = 0.0
         self.beep.deactivated()
 
@@ -186,14 +190,21 @@ class AccessibilityWatcher:
         self._press_side_hold_key(next_side_key)
         self._schedule_next_side_switch()
 
-    def _hold_refresh_loop(self) -> None:
-        # alguns jogos perdem holds artificiais; o refresh mantem o estado.
+    def _forward_hold_loop(self) -> None:
+        # thread dedicada: W fica isolado da alternancia lateral.
+        while not self.stop_event.is_set():
+            with self.lock:
+                self._keep_forward_pressed()
+
+            time.sleep(self.config.hold_refresh_interval)
+
+    def _side_movement_loop(self) -> None:
+        # thread dedicada: A/D alterna sem controlar o hold de W.
         while not self.stop_event.is_set():
             with self.lock:
                 if self.main_mode and not self.action_running:
                     self._refresh_side_hold()
                     self._switch_side_when_due()
-                    self._keep_forward_pressed()
 
             time.sleep(self.config.hold_refresh_interval)
 
@@ -213,7 +224,6 @@ class AccessibilityWatcher:
         self._release_side_hold_keys()
         self.keyboard.press_key(key)
         self.current_side_hold_key = key
-        self._keep_forward_pressed()
 
         print(f"HOLD lateral atual: [{key.upper()}]")
 

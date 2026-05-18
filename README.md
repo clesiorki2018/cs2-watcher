@@ -19,7 +19,7 @@ O projeto separa a regra de negocio da integracao com teclado, mouse e hotkeys, 
 - Alternancia lateral com intervalo variavel entre `0.5s` e `1.0s` por padrao.
 - Ao clicar, solta `W/A/D`, pressiona `CTRL` por `0.8s` e restaura o movimento.
 - Debounce para evitar acionamentos duplicados de hotkeys e cliques.
-- Thread de refresh para reaplicar holds artificiais quando necessario.
+- Threads separadas para reaplicar `W` e alternar `A/D` sem conflito.
 
 ## Estrutura
 
@@ -195,7 +195,7 @@ plantuml -tpng docs/*.puml
 2. A aplicacao cria o `AccessibilityWatcher`, o listener de mouse e o `HotkeyListener`.
 3. Ao pressionar `F8`, o modo principal e ativado.
 4. O watcher pressiona `W` e, se o movimento lateral estiver ativo, pressiona `D`.
-5. A thread de refresh mantem os holds artificiais ativos.
+5. Uma thread dedicada mantem `W` pressionado enquanto `CTRL` nao esta ativo.
 6. Quando o intervalo lateral vence, o watcher alterna entre `A` e `D` e agenda o proximo intervalo.
 7. Ao clicar, o watcher solta `W/A/D`, pressiona `CTRL` por `0.8s` e restaura `W` e a lateral.
 8. Ao pressionar `ESC`, a aplicacao encerra e solta todas as teclas.

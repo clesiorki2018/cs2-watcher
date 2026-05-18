@@ -33,8 +33,8 @@ Desativado --> [*] : shutdown()
 ModoPrincipalAtivo --> [*] : shutdown()
 
 note right of ModoPrincipalAtivo
-Enquanto ativo, uma thread de refresh
-reaplica W e alterna A/D conforme
+Enquanto ativo, uma thread mantem W
+e outra alterna A/D conforme
 o intervalo aleatorio configurado.
 end note
 

@@ -35,6 +35,8 @@ class AccessibilityWatcher {
     +action_running: bool
     +stop_event: Event
     +next_side_switch_time: float
+    +forward_hold_thread: Thread
+    +side_movement_thread: Thread
     +build_default(): AccessibilityWatcher
     +toggle_main_mode(): None
     +toggle_side_movement(): None

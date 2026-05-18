@@ -84,8 +84,10 @@ Arquivos e responsabilidades:
   - `stop_event`
   - `lock`
   - `next_side_switch_time`
-  - `hold_refresh_thread`
-- `_hold_refresh_loop()` reaplica W, reaplica a lateral atual e chama `_switch_side_when_due()`.
+  - `forward_hold_thread`
+  - `side_movement_thread`
+- `_forward_hold_loop()` mantem W pressionado enquanto o modo principal esta ativo e CTRL nao esta ativo.
+- `_side_movement_loop()` reaplica a lateral atual e chama `_switch_side_when_due()`.
 - `_switch_side_when_due()` alterna entre A e D quando o intervalo vence.
 - `_schedule_next_side_switch()` agenda o proximo intervalo com `random.uniform(0.5, 1.0)`.
 - `handle_click()` solta W/A/D, pressiona CTRL por 0.8s e restaura o movimento.

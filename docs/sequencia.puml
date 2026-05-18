@@ -10,7 +10,8 @@ participant "AccessibilityWatcher" as Watcher
 participant "KeyboardController" as Keyboard
 participant "BeepService" as Beep
 participant "pynput.mouse.Listener\n<<external>>" as Mouse
-participant "Thread\n<<hold_refresh>>" as Refresh
+participant "Thread\n<<forward_hold>>" as ForwardThread
+participant "Thread\n<<side_movement>>" as SideThread
 participant "threading.Timer\n<<external>>" as Timer
 participant "time" as TimeLib
 participant "random.uniform" as Random
@@ -35,9 +36,13 @@ Watcher -> Beep : activated()
 deactivate Watcher
 
 loop enquanto main_mode estiver ativo
-    Refresh -> Watcher : _hold_refresh_loop()
+    ForwardThread -> Watcher : _forward_hold_loop()
     activate Watcher
     Watcher -> Keyboard : press_forward()
+    deactivate Watcher
+
+    SideThread -> Watcher : _side_movement_loop()
+    activate Watcher
     Watcher -> Watcher : _refresh_side_hold()
     Watcher -> Keyboard : press_key(current_side_hold_key)
     Watcher -> Watcher : _switch_side_when_due()
@@ -51,7 +56,7 @@ loop enquanto main_mode estiver ativo
         Watcher -> Watcher : _schedule_next_side_switch()
         Watcher -> Random : uniform(0.5, 1.0)
     else aguardando proximo intervalo
-        Watcher --> Refresh : mantem tecla lateral atual
+        Watcher --> SideThread : mantem tecla lateral atual
     end
 
     deactivate Watcher
