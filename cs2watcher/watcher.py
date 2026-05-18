@@ -172,8 +172,8 @@ class AccessibilityWatcher:
             self.action_running = False
 
             if self.main_mode:
-                self._keep_forward_pressed()
                 self._restore_side_movement(previous_side_key)
+                self._keep_forward_pressed()
 
             self.release_timer = None
 
@@ -191,9 +191,9 @@ class AccessibilityWatcher:
         while not self.stop_event.is_set():
             with self.lock:
                 if self.main_mode and not self.action_running:
-                    self._keep_forward_pressed()
                     self._refresh_side_hold()
                     self._switch_side_when_due()
+                    self._keep_forward_pressed()
 
             time.sleep(self.config.hold_refresh_interval)
 
@@ -211,9 +211,9 @@ class AccessibilityWatcher:
 
     def _press_side_hold_key(self, key: str) -> None:
         self._release_side_hold_keys()
-        self._keep_forward_pressed()
         self.keyboard.press_key(key)
         self.current_side_hold_key = key
+        self._keep_forward_pressed()
 
         print(f"HOLD lateral atual: [{key.upper()}]")
 
